@@ -1,9 +1,9 @@
 import React from 'react';
 import { VERSION } from '@twilio/flex-ui';
-import { FlexPlugin } from 'flex-plugin';
+import { FlexPlugin } from '@twilio/flex-plugin';
 
-import CustomTaskListContainer from './components/CustomTaskList/CustomTaskList.Container';
-import reducers, { namespace } from './states';
+// import CustomTaskListContainer from './components/CustomTaskList/CustomTaskList.Container';
+// import reducers, { namespace } from './states';
 
 const PLUGIN_NAME = 'AudioAlertPlugin';
 
@@ -34,25 +34,39 @@ export default class AudioAlertPlugin extends FlexPlugin {
     //     }
     // })
 
-    const incomingTaskSound = new Audio("https://quartz-ram-3050.twil.io/assets/multimedia_alert_006_46195.mp3");
-    incomingTaskSound.loop = false;
+    const incomingTaskSound = new Audio("https://perceptioniststorage.blob.core.windows.net/notifications/officephone.mp3");
+    const incomingPreviewDialerSound = new Audio("https://perceptioniststorage.blob.core.windows.net/notifications/notification5.wav");
+    const incomingSMSSound = new Audio("https://perceptioniststorage.blob.core.windows.net/notifications/smsChime.mp3");
+    const incomingChatSound = new Audio("https://perceptioniststorage.blob.core.windows.net/notifications/chime.wav");
+    incomingTaskSound.loop = true;
     
     const resStatus = ["accepted","canceled","rejected","rescinded","timeout"];
     
     manager.workerClient.on("reservationCreated", function(reservation) {
-      if (reservation.task.taskChannelUniqueName === 'voice' && reservation.task.attributes.Direction === 'inbound') {
+      if (reservation.task.taskChannelUniqueName === 'voice' && reservation.task.attributes.direction === 'inbound') {
         incomingTaskSound.play();
-        console.log("task.attributes: " + reservation.task.attributes )
+      }
+      else if(reservation.task.taskChannelUniqueName === 'previewdialer'){
+        incomingPreviewDialerSound.play();
+      }
+      else if(reservation.task.taskChannelUniqueName === 'chat'){
+        incomingChatSound.play();
+      }
+      else if(reservation.task.taskChannelUniqueName === 'sms'){
+        incomingSMSSound.play();
       }
       resStatus.forEach((e) => {
         reservation.on(e, () => {
           incomingTaskSound.pause()
+          incomingPreviewDialerSound.pause()
+          incomingChatSound.pause()
+          incomingChatSound.pause()
         });
       });
     });
 
     const options = { sortOrder: -1 };
-    flex.AgentDesktopView.Panel1.Content.add(<CustomTaskListContainer key="demo-component" />, options);
+    // flex.AgentDesktopView.Panel1.Content.add(<CustomTaskListContainer key="demo-component" />, options);
   }
 
   /**
@@ -67,6 +81,6 @@ export default class AudioAlertPlugin extends FlexPlugin {
       return;
     }
 
-    manager.store.addReducer(namespace, reducers);
+    // manager.store.addReducer(namespace, reducers);
   }
 }
